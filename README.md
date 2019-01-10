@@ -1,4 +1,4 @@
-## Monitorização de Rendimento Académico
+## Desportos
 Este é um projecto simples com user registration and authorization/authentication que permite efectuar o CRUDE.
 
 ## Motivation
