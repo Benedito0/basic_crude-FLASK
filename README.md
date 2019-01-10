@@ -13,7 +13,7 @@ Ex. -
 - [Flask](http://flask.pocoo.org)
 - [Google Oauth](https://developers.google.com/identity/protocols/OAuth2)
 - [SQLite](http://www.sqlitetutorial.net/sqlite-python/)
-- [Heroku](https://www.heroku.com/)[ **Deployment ** ]
+- [Heroku](https://www.heroku.com/)[ **Deployment** ]
 
 
 ## Features
@@ -28,4 +28,4 @@ Aceder ao site e criar uma conta.
 
 
 
-**OBS: O site pode dar erros de "MYSQL Lost connection" mas basta actualizar a pagina que o erro desaparece **
+**OBS: O site pode dar erros de "MYSQL Lost connection" mas basta actualizar a pagina que o erro desaparece**
