@@ -6,7 +6,6 @@ A motivação surgiu quando notei que o INAGBE(Instituto Nacional de Gestão de 
 
 
 ## Tech/framework used
-Ex. -
 
 <b>Built with</b>
 - [Python 3.6](https://www.python.org/downloads/release/python-360/)
