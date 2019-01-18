@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/index_style.css') }}">
+
+    <script src="{{ url_for('static', filename='js/add_newItem.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+</head>
+<body>
+
+
+<ul class="nav">
+  <li><a href="/index">Catalog App</a></li>
+    {% if is_logged %}
+    <li style="float:right"><a href="/gdisconnect"><button id="logBtn">LOGOUT</button></a></li>
+    {% else %}
+    <li style="float:right"><a href="/login"><button id="logBtn">LOGIN</button></a></li>
+    {% endif %}
+</ul>
+
+<div class="items_div">
+
+<form action="/add/item" method="POST" id="itemsfrm">
+
+     <label class="control-label" for="nome">Item name</label>
+				  <input class="form-control" id="item_name" name="item_name" placeholder="Name of the item" required="" type="text">
+
+ <select name="category_id", id="item_category" class="form-control" >
+					<option value="-1">------Choose Category---------</option>
+
+					{% if categories %}
+        				{% for x in categories %}
+
+					<option value={{ x.id }}>{{ x.category_name }}</option>
+
+
+						{% endfor %}
+
+
+      				{% endif %}
+				</select><br>
+    <label class="control-label" for="nome">Description </label>
+    <textarea rows="4" cols="50" placeholder="Description of the item" id="item_descripton" name="item_description" form="itemsfrm"></textarea>
+
+
+
+    <input type="submit">
+
+    </form>
+
+
+
+</div>
+
+</body>
+</html>

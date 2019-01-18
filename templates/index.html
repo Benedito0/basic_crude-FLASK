@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/index_style.css') }}">
+<style>
+
+
+
+</style>
+</head>
+<body>
+
+<ul class="nav">
+  <li><a href="/index">Catalog App</a></li>
+    {% if is_logged %}
+    <li style="float:right"><a href="/gdisconnect"><button id="logBtn">LOGOUT</button></a></li>
+    {% else %}
+    <li style="float:right"><a href="/login"><button id="logBtn">LOGIN</button></a></li>
+    {% endif %}
+</ul>
+
+<div class = 'flash'>
+		      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+
+        <ul>
+        {% for message in messages %}
+            <li> <strong> {{ message }} </strong> </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
+
+</div>
+
+<div class="items_div">
+
+    <div class="items_div_categories">
+    <h2>Categories</h2>
+    <ul>
+        {% for category in categories %}
+      <li><a href="#contact">{{ category.category_name }}</a> </li>
+        {% endfor %}
+
+    </ul>
+
+    </div>
+
+    <div class="items_div_categories_items">
+        {% if is_logged %}
+    <li style="color:orange"><a href="/add/item">Add Item</a></li>
+    {% endif %}
+    <h2>Items</h2>
+    <ul>
+      <li><a href="#contact">Catalog App</a><span>(CatalogApp)</span></li>
+      <li><a href="#about">Soccer</a><span>(soccer)</span></li>
+      <li><a href="#about">Basketball</a><span>(basketball)</span></li>
+      <li><a href="#about">About</a><span>(basketball)</span></li>
+    </ul>
+</div>
+
+</div>
+</body>
+</html>
