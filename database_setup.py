@@ -27,7 +27,6 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     user_email = Column(String(250), nullable=False, unique=True)
     name = Column(String(250), nullable=False)
-    upload_time = Column(String(250), nullable=False)
 
     @property
     def serialize(self):

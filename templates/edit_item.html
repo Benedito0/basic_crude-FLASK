@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/index_style.css') }}">
+<style>
+
+
+
+</style>
+</head>
+<body>
+
+<ul class="nav">
+  <li><a href="/index">Catalog App</a></li>
+    {% if is_logged %}
+    <li style="float:right"><a href="/gdisconnect"><button id="logBtn">LOGOUT</button></a></li>
+    {% else %}
+    <li style="float:right"><a href="/login"><button id="logBtn">LOGIN</button></a></li>
+    {% endif %}
+</ul>
+
+<div class = 'flash'>
+		      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+
+        <ul>
+        {% for message in messages %}
+            <li> <strong> {{ message }} </strong> </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
+
+</div>
+
+<div class="items_div">
+   <form action="/catalog/{{item.name}}/edit" method="POST" id="itemsfrm">
+
+     <label class="control-label" for="nome">Item name</label>
+				  <input class="form-control" id="item_name" name="item_name" value="{{item.name}}" required="" type="text">
+
+ <select name="category_id" id="item_category" class="form-control" >
+                    <option value="{{category.id}}">{{ category.category_name }}</option>
+
+					{% if categories %}
+        				{% for x in categories %}
+
+					<option value={{ x.id }}>{{ x.category_name }}</option>
+
+
+						{% endfor %}
+
+
+      				{% endif %}
+				</select><br>
+    <label class="control-label" for="nome">Description </label>
+    <textarea rows="4" cols="50" placeholder="Description of the item" id="item_descripton" name="item_description" form="itemsfrm">{{item.description}}</textarea>
+
+
+
+    <input type="submit">
+
+
+
+</div>
+</body>
+</html>

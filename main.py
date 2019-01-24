@@ -29,12 +29,13 @@ def create_user(login_session):
 
     session = DBSession()
 
-    new_user = User(category_name=login_session['user_email'], name=login_session['name'])
+    new_user = User(user_email=login_session['user_email'], name=login_session['user_name'])
     session.add(new_user)
     session.commit()
 
-    user = session.query(User).filter_by(email=login_session['user_email']).one()
+    user = session.query(User).filter_by(user_email=login_session['user_email']).one()
     session.close()
+    print(user.id)
     return user.id
 
 
@@ -44,7 +45,8 @@ def get_userid(email):
 
     try:
         user = session.query(User).filter_by(user_email=email).one()
-        session.close();
+        session.close()
+        print(user.id)
         return user.id
 
     except:
@@ -54,9 +56,8 @@ def get_userid(email):
 def get_userinfo(user_id):
 
     session = DBSession()
-
     user = session.query(User).filter_by(id=user_id).one()
-    session.close();
+    session.close()
     return user
 
 
@@ -96,7 +97,7 @@ def gconnect():
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='', redirect_uri='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
-        print("get_cred")
+
 
     except FlowExchangeError as error:
         print(error)
@@ -138,7 +139,7 @@ def gconnect():
     login_session['access_token'] = credentials.access_token
 
     print(login_session['access_token'])
-    print(credentials.to_json())
+    #print(credentials.to_json())
 
     # Get user info
     userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
@@ -152,18 +153,29 @@ def gconnect():
     login_session['user_name'] = data['name']
     login_session['user_email'] = data['email']
 
+    user_exists = get_userid(email=login_session['user_email'])
 
-    user_exists = get_userid(login_session['user_email'])
+    if user_exists is None:
+        user_id = create_user(login_session)
+        login_session['user_id'] = user_id
 
-    if user_exists is not None:
-        user = get_userinfo(create_user(login_session))
+    else:
 
-    print(user_exists)
-    user_id = get_userid(email=login_session['user_email'])
-    login_session['user_id'] = user_id
+        print(user_exists)
+
+        login_session['user_id'] = user_exists
+
+    output = ''
+    output += '<h1>Welcome, '
+    output += login_session['user_name']
+    output += '!</h1>'
+
+    # flash("you are now logged in as {}".format(login_session['username']))
+    print("done!")
+    return output
 
 
-    return redirect(url_for('index'))
+
 
 
 # ------------> End Login Page
@@ -222,9 +234,17 @@ def gdisconnect():
 def index():
     session = DBSession()
 
+
     categories = session.query(Category).order_by(asc(Category.category_name))
     items = session.query(CategoryItem).join("category")
-    print(items)
+
+
+
+    for item in items:
+        print("AAA")
+        print(item.description)
+
+
 
     # login_session.clear()
 
@@ -234,11 +254,11 @@ def index():
         id_user = login_session['user_id']
 
         session.close()
-        return render_template('index.html', id=id_user, is_logged=True, categories=categories)
+        return render_template('index.html', id=id_user, is_logged=True, categories=categories, items=items)
 
     else:
         session.close()
-        return render_template('index.html', categories=categories)
+        return render_template('index.html', categories=categories, items=items)
 
 
 @app.route('/add/category', methods=['POST', 'GET'])
@@ -273,7 +293,7 @@ def add_item():
 
         session.add(item)
         session.commit()
-        flash("Item adicionado!")
+        flash("Item Added!!")
         session.close()
         
         return redirect(url_for('index', categories=categories, is_logged=True))
@@ -292,6 +312,72 @@ def categoryitems(categoryname):
 
     if request.method == 'GET':
         return render_template('show_items.html')
+
+
+@app.route('/catalog/<categoryname>/<itemname>', methods=['POST', 'GET'])
+def itempage(itemname, categoryname):
+    if 'user_id' not in login_session:
+        return redirect('/login')
+
+    session = DBSession()
+
+    item = session.query(CategoryItem).filter_by(name=itemname).one()
+    user_id = login_session['user_id']
+    print(user_id)
+    print(item.user_id)
+
+    if int(user_id) == int(item.user_id):
+
+        return render_template('show_item.html', item=item, is_logged=True, is_his=True)
+
+
+    return render_template('show_item.html', item=item, is_logged=True, is_his=False)
+
+
+@app.route('/catalog/<itemname>/edit', methods =['POST', 'GET'])
+def edititem(itemname):
+    session = DBSession()
+    item_to_edit = session.query(CategoryItem).filter_by(name=itemname).one()
+    categories = session.query(Category).order_by(asc(Category.category_name))
+    category = session.query(Category).filter_by(id=item_to_edit.category_id).one()
+    user_id = login_session['user_id']
+
+    if (int(user_id) != int(item_to_edit.user_id)) or 'user_id' not in login_session:
+        return redirect('/index')
+
+    if request.method == 'POST':
+        session = DBSession()
+        item_to_edit = session.query(CategoryItem).filter_by(name=itemname).one()
+
+        item_name = request.form['item_name']
+        item_description = request.form['item_description']
+        item_category = request.form['category_id']
+
+
+
+        item_to_edit.name = item_name
+        session.commit()
+        item_to_edit.description = item_description
+        session.commit()
+        item_to_edit.category_id = item_category
+        session.commit()
+
+
+        flash("Item edited!")
+
+
+        return redirect('/index')
+
+
+    session.close()
+    return render_template('edit_item.html', item=item_to_edit, categories=categories, category=category, is_logged=True)
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     app.debug = True

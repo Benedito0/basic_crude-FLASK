@@ -34,30 +34,18 @@
 </div>
 
 <div class="items_div">
+    <h1>{{ item.name }}</h1>
+    <p>{{ item.description }}</p>
 
-    <div class="items_div_categories">
-    <h2>Categories</h2>
+    {% if is_logged and is_his %}
+
     <ul>
-        {% for category in categories %}
-      <li><a href="#contact">{{ category.category_name }}</a> </li>
-        {% endfor %}
-
+        <li style="color:orange"><a href="/catalog/{{ item.name }}/edit">Edit</a></li>
+        <li style="color:orange"><a href="#">Delete</a></li>
     </ul>
-
-    </div>
-
-    <div class="items_div_categories_items">
-        {% if is_logged %}
-    <li style="color:orange"><a href="/add/item">Add Item</a></li>
     {% endif %}
-    <h2>Items</h2>
-    <ul>
-        {% for item in items %}
-      <li><a href="/catalog/{{ item.category.category_name }}/{{ item.name }}">{{ item.name }}</a><span>({{ item.category.category_name }})</span> </li>
-        {% endfor %}
 
-    </ul>
-</div>
+
 
 </div>
 </body>
