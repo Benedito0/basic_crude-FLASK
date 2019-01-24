@@ -2,11 +2,10 @@
 <html>
 <head>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/index_style.css') }}">
-<style>
-
-
-
-</style>
+    <script type="javascript">
+        delete()
+        {}
+    </script>
 </head>
 <body>
 
@@ -40,8 +39,8 @@
     {% if is_logged and is_his %}
 
     <ul>
-        <li style="color:orange"><a href="/catalog/{{ item.name }}/edit">Edit</a></li>
-        <li style="color:orange"><a href="#">Delete</a></li>
+        <li style="color:orange"><a href="/catalog/{{ item.name }}/{{ item.id }}/edit">Edit</a></li>
+        <li style="color:orange"><a href="/catalog/{{ item.name }}/{{ item.id }}/delete" onclick="delete()">Delete</a></li>
     </ul>
     {% endif %}
 

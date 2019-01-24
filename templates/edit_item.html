@@ -34,7 +34,7 @@
 </div>
 
 <div class="items_div">
-   <form action="/catalog/{{item.name}}/edit" method="POST" id="itemsfrm">
+   <form action="/catalog/{{item.name}}/{{item.id}}/edit" method="POST" id="itemsfrm">
 
      <label class="control-label" for="nome">Item name</label>
 				  <input class="form-control" id="item_name" name="item_name" value="{{item.name}}" required="" type="text">

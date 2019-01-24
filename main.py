@@ -171,7 +171,7 @@ def gconnect():
     output += '!</h1>'
 
     # flash("you are now logged in as {}".format(login_session['username']))
-    print("done!")
+
     return output
 
 
@@ -206,15 +206,8 @@ def gdisconnect():
     print("Result is")
     print(result)
     if result['status'] == '200':
-        
-        for key in login_session.keys():
-
-            login_session.pop(key)
-
-
-
-
-        return redirect(url_for('index'))
+        login_session.clear()
+        return redirect('/index')
     else:
 
         response = make_response(json.dumps('Failed to revoke token for given user.'), 400)
@@ -316,15 +309,18 @@ def categoryitems(categoryname):
 
 @app.route('/catalog/<categoryname>/<itemname>', methods=['POST', 'GET'])
 def itempage(itemname, categoryname):
+
     if 'user_id' not in login_session:
-        return redirect('/login')
+        user_id = 0
+
+    else:
+        user_id = login_session['user_id']
 
     session = DBSession()
 
     item = session.query(CategoryItem).filter_by(name=itemname).one()
-    user_id = login_session['user_id']
-    print(user_id)
-    print(item.user_id)
+
+
 
     if int(user_id) == int(item.user_id):
 
@@ -334,10 +330,10 @@ def itempage(itemname, categoryname):
     return render_template('show_item.html', item=item, is_logged=True, is_his=False)
 
 
-@app.route('/catalog/<itemname>/edit', methods =['POST', 'GET'])
-def edititem(itemname):
+@app.route('/catalog/<itemname>/<int:item_id>/edit', methods=['POST', 'GET'])
+def edititem(itemname, item_id):
     session = DBSession()
-    item_to_edit = session.query(CategoryItem).filter_by(name=itemname).one()
+    item_to_edit = session.query(CategoryItem).filter_by(id=item_id).one()
     categories = session.query(Category).order_by(asc(Category.category_name))
     category = session.query(Category).filter_by(id=item_to_edit.category_id).one()
     user_id = login_session['user_id']
@@ -347,13 +343,11 @@ def edititem(itemname):
 
     if request.method == 'POST':
         session = DBSession()
-        item_to_edit = session.query(CategoryItem).filter_by(name=itemname).one()
+        item_to_edit = session.query(CategoryItem).filter_by(id=item_id).one()
 
         item_name = request.form['item_name']
         item_description = request.form['item_description']
         item_category = request.form['category_id']
-
-
 
         item_to_edit.name = item_name
         session.commit()
@@ -371,6 +365,28 @@ def edititem(itemname):
 
     session.close()
     return render_template('edit_item.html', item=item_to_edit, categories=categories, category=category, is_logged=True)
+
+@app.route('/catalog/<itemname>/<int:item_id>/delete', methods =['POST', 'GET'])
+def deleteitem(itemname, item_id):
+    session = DBSession()
+    item_to_delete = session.query(CategoryItem).filter_by(id=item_id).one()
+
+    user_id = login_session['user_id']
+
+    if (int(user_id) != int(item_to_delete.user_id)) or 'user_id' not in login_session:
+        return redirect('/index')
+
+    session = DBSession()
+
+    item_to_delete = session.query(CategoryItem).filter_by(id=item_id).one()
+
+    session.delete(item_to_delete)
+    session.commit()
+
+    flash("Item deleted!")
+
+    return redirect('/index')
+
 
 
 
