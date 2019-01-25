@@ -35,7 +35,6 @@ def create_user(login_session):
 
     user = session.query(User).filter_by(user_email=login_session['user_email']).one()
     session.close()
-    print(user.id)
     return user.id
 
 
@@ -70,21 +69,19 @@ def get_userinfo(user_id):
 
 
 @app.route('/login',  methods=['POST', 'GET'])
-def hello():
+def login():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in range(32))
     login_session['state'] = state
-    #return "The current session state is %s" % login_session['state']
-
-
-
 
     return render_template('login.html', STATE=state)
 
 
 @app.route('/gconnect',  methods=['POST', 'GET'])
 def gconnect():
-
+    """
+        This fucntion is responsible for gathering all the info of the Google account used to logginIn/sigingIn
+        """
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -98,10 +95,8 @@ def gconnect():
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
 
-
     except FlowExchangeError as error:
-        print(error)
-        response = make_response(json.dumps('Failed to upgrade the authorization code.'), 401)
+        response = make_response(json.dumps('Failed to upgrade the authorization code. Error {}.'.format(error)), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -118,7 +113,6 @@ def gconnect():
     ggplus_id = credentials.id_token['sub']
 
     if result['user_id'] != ggplus_id:
-        print("Aqui")
         response = make_response(json.dumps("Token's user ID doesnt match given user ID"), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -129,8 +123,6 @@ def gconnect():
     if stored_credentials is not None and ggplus_id == stored_ggplus_id:
         response = make_response(json.dumps('Current user is already connected'), 200)
         response.headers['Content-Type'] = 'application/json'
-        print("Ali")
-        print(credentials.access_token)
         login_session['access_token'] = credentials.access_token
         return response
 
@@ -139,7 +131,6 @@ def gconnect():
     login_session['access_token'] = credentials.access_token
 
     print(login_session['access_token'])
-    #print(credentials.to_json())
 
     # Get user info
     userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
@@ -175,27 +166,12 @@ def gconnect():
     return output
 
 
-
-
-
-# ------------> End Login Page
-
-
-# =====================================================================================================================#
-#
-#                                                Logout
-#
-# =====================================================================================================================#
-
-
-@app.route('/gdisconnect')
+@app.route('/gdisconnect')  # Logout function
 def gdisconnect():
-    access_token = login_session.get('access_token') 
-    print("In gdisconnect access token is {}".format(access_token))
-
+    access_token = login_session.get('access_token')
 
     if access_token is None:
-        print('Access Token is None')
+
         response = make_response(json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -203,8 +179,6 @@ def gdisconnect():
     url = "https://accounts.google.com/o/oauth2/revoke?token={}".format(access_token)
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
-    print("Result is")
-    print(result)
     if result['status'] == '200':
         login_session.clear()
         return redirect('/index')
@@ -227,21 +201,8 @@ def gdisconnect():
 def index():
     session = DBSession()
 
-
     categories = session.query(Category).order_by(asc(Category.category_name))
     items = session.query(CategoryItem).join("category")
-
-
-
-    for item in items:
-        print("AAA")
-        print(item.description)
-
-
-
-    # login_session.clear()
-
-
 
     if 'user_id' in login_session:
         id_user = login_session['user_id']
@@ -271,8 +232,11 @@ def add_category(categoryname):
 
 @app.route('/add/item',  methods =['POST', 'GET'])
 def add_item():
-    session = DBSession()
 
+    if 'user_id' not in login_session:
+        redirect('/index')
+
+    session = DBSession()
 
     categories = session.query(Category).order_by(asc(Category.category_name))
 
@@ -296,12 +260,9 @@ def add_item():
     return render_template('new_item.html', is_logged=True, categories=categories)
 
 
-
 @app.route('/catalog/<categoryname>/items',  methods =['POST', 'GET'])
 def categoryitems(categoryname):
     session.query()
-
-
 
     if request.method == 'GET':
         return render_template('show_items.html')
@@ -320,12 +281,9 @@ def itempage(itemname, categoryname):
 
     item = session.query(CategoryItem).filter_by(name=itemname).one()
 
-
-
     if int(user_id) == int(item.user_id):
 
         return render_template('show_item.html', item=item, is_logged=True, is_his=True)
-
 
     return render_template('show_item.html', item=item, is_logged=True, is_his=False)
 
@@ -356,15 +314,13 @@ def edititem(itemname, item_id):
         item_to_edit.category_id = item_category
         session.commit()
 
-
         flash("Item edited!")
-
 
         return redirect('/index')
 
-
     session.close()
     return render_template('edit_item.html', item=item_to_edit, categories=categories, category=category, is_logged=True)
+
 
 @app.route('/catalog/<itemname>/<int:item_id>/delete', methods =['POST', 'GET'])
 def deleteitem(itemname, item_id):
@@ -388,13 +344,6 @@ def deleteitem(itemname, item_id):
     return redirect('/index')
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='localhost', port=8080)
+    app.run()
