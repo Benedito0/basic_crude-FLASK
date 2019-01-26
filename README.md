@@ -13,10 +13,9 @@ A aplicação tem um sistema de autenticação,registo e autorização de usuár
 
 
 ## Features
--Todos os users podem adicionar categorias.
 -Todos os users podem adicionar um item à qualquer categoria.
 -Os user podem apagar e editar os seus respectivos Items.
--Tem uma API endpoint que retorna toda a informação em json.
+
 
 
 ## How to use?
