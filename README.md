@@ -19,5 +19,9 @@ A aplicação tem um sistema de autenticação,registo e autorização de usuár
 
 
 ## How to use?
-Basta baixar e executar
+Download the code
+Execute the file Database Setup (to create the db)
+Execute the file lots_of_categories
+Execute main.py fie to get the web app running on http://localhost:8080/ 
+And accessing the link will give you access to the app
 
