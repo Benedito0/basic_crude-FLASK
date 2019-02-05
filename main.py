@@ -50,7 +50,7 @@ def get_userid(email):
     try:
         user = session.query(User).filter_by(user_email=email).one()
         session.close()
-        print(user.id)
+
         return user.id
 
     except BaseException:
@@ -91,7 +91,7 @@ def gconnect():
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter'), 401)
         response.headers['Content-Type'] = 'application/json'
-        print("Invalid state parameter")
+
         return response
 
     code = request.data
@@ -146,8 +146,6 @@ def gconnect():
     login_session['gplus_id'] = credentials.id_token['sub']
     login_session['access_token'] = credentials.access_token
 
-    print(login_session['access_token'])
-
     # Get user info
     userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
     params = {'access_token': credentials.access_token, 'alt': 'json'}
@@ -155,7 +153,6 @@ def gconnect():
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
-    print(data)
 
     login_session['user_name'] = data['name']
     login_session['user_email'] = data['email']
@@ -167,8 +164,6 @@ def gconnect():
         login_session['user_id'] = user_id
 
     else:
-
-        print(user_exists)
 
         login_session['user_id'] = user_exists
 
@@ -338,7 +333,11 @@ def edititem(itemname, item_id):
     categories = session.query(Category).order_by(asc(Category.category_name))
     category = session.query(Category).filter_by(
         id=item_to_edit.category_id).one()
-    user_id = login_session['user_id']
+
+    user_id = 0
+
+    if 'user_id' in login_session:
+        user_id = login_session['user_id']
 
     if user_id != item_to_edit.user_id\
             or 'user_id' not in login_session:
@@ -353,9 +352,9 @@ def edititem(itemname, item_id):
         item_category = request.form['category_id']
 
         item_to_edit.name = item_name
-        session.commit()
+
         item_to_edit.description = item_description
-        session.commit()
+
         item_to_edit.category_id = item_category
         session.commit()
 
@@ -376,10 +375,12 @@ def edititem(itemname, item_id):
 def deleteitem(itemname, item_id):
     session = DBSession()
     item_to_delete = session.query(CategoryItem).filter_by(id=item_id).one()
+    user_id = 0
 
-    user_id = login_session['user_id']
+    if 'user_id' in login_session:
+        user_id = login_session['user_id']
 
-    if user_id != item_to_edit.user_id\
+    if user_id != item_to_delete.user_id\
             or 'user_id' not in login_session:
         return redirect('/index')
 
@@ -396,16 +397,24 @@ def deleteitem(itemname, item_id):
 
 
 @app.route('/catalog.json')
-def api_endpoint(itemname, item_id):
+def api_endpoint():
+    session = DBSession()
     categories = session.query(Category).all()
     items = session.query(CategoryItem).all()
 
-    return jsonify(
-        restaurants=[
-            r.serialize for r in categories], items=[
-            i.serialize for i in items])
+    categories_array = []
+    items_array = []
+
+    for category in categories:
+        categories_array.append(category.serialize)
+
+        for item in items:
+            if item.category.id == category.id:
+                items_array.append(item.serialize)
+
+    return jsonify(Categories=categories_array, items=items_array)
 
 
 if __name__ == '__main__':
     app.debug = True
-    app.run()
+    app.run(host='localhost', port=8080)
